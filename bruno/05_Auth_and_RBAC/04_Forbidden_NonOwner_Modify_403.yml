@@ -1,0 +1,28 @@
+---
+info:
+  name: 04 Non-Owner Resource Deletion Attempt (403 Forbidden)
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/incidents/2"
+  headers:
+    - name: Accept
+      value: application/hal+json
+  auth:
+    type: basic
+    username: dev_alice
+    password: alice123
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 403
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/problem+json
+    - expression: res.body.status
+      operator: eq
+      value: 403

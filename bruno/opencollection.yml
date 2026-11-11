@@ -1,0 +1,11 @@
+---
+opencollection: 1.0.0
+
+info:
+  name: Incident & Release Management REST API
+  type: collection
+
+config:
+  ignore:
+    - node_modules
+    - .git

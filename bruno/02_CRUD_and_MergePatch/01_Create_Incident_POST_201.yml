@@ -1,0 +1,65 @@
+---
+info:
+  name: 01 Create Incident POST (201 Created + Location)
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/incidents"
+  headers:
+    - name: Accept
+      value: application/hal+json
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: basic
+    username: dev_alice
+    password: alice123
+  body:
+    type: json
+    data: |
+      {
+        "service_id": 1,
+        "release_id": 1,
+        "title": "Elevated latency on token introspection",
+        "summary": "P99 latency jumped to 850ms following key rotation.",
+        "severity": "high",
+        "status": "open"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |
+        if (res.status === 201 && res.body && res.body.id) {
+          bru.setEnvVar("createdIncidentId", res.body.id);
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 201
+    - expression: res.headers['location']
+      operator: contains
+      value: /api/incidents/
+    - expression: res.headers['etag']
+      operator: isDefined
+    - expression: res.body.reported_by
+      operator: eq
+      value: dev_alice
+    - expression: res.body.release_id
+      operator: eq
+      value: 1
+    - expression: res.body._links.self.href
+      operator: isDefined
+    - expression: res.body._links.up.href
+      operator: eq
+      value: /api/services/1
+    - expression: res.body._links.related.href
+      operator: eq
+      value: /api/releases/1
+    - expression: res.body._links.author.href
+      operator: eq
+      value: /api/me
+    - expression: res.body._links.edit.href
+      operator: isDefined

@@ -1,0 +1,39 @@
+---
+info:
+  name: 04 Invalid PATCH Content-Type (415 Unsupported Media Type)
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/services/1"
+  headers:
+    - name: Accept
+      value: application/hal+json
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: basic
+    username: admin
+    password: admin123
+  body:
+    type: json
+    data: |
+      {
+        "tier": "tier-2"
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 415
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/problem+json
+    - expression: res.headers['accept-patch']
+      operator: eq
+      value: application/merge-patch+json
+    - expression: res.body.status
+      operator: eq
+      value: 415

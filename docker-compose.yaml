@@ -1,0 +1,14 @@
+services:
+  api:
+    build: .
+    container_name: incident-release-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - sqlite_data:/workspace/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:

@@ -1,0 +1,41 @@
+---
+info:
+  name: 04 Optimistic Locking If-Match Mismatch (412 Precondition Failed)
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/services/1"
+  headers:
+    - name: Accept
+      value: application/hal+json
+    - name: Content-Type
+      value: application/merge-patch+json
+    - name: If-Match
+      value: '"00000000staleetag"'
+  auth:
+    type: basic
+    username: admin
+    password: admin123
+  body:
+    type: text
+    data: |
+      {
+        "tier": "tier-2"
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 412
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/problem+json
+    - expression: res.body.status
+      operator: eq
+      value: 412
+    - expression: res.body.title
+      operator: eq
+      value: Precondition Failed

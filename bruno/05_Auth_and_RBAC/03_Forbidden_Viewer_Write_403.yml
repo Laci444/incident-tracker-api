@@ -1,0 +1,43 @@
+---
+info:
+  name: 03 Read-Only User Write Attempt (403 Forbidden)
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/services"
+  headers:
+    - name: Accept
+      value: application/hal+json
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: basic
+    username: viewer_bob
+    password: bob123
+  body:
+    type: json
+    data: |
+      {
+        "name": "Unauthorized Service",
+        "slug": "unauthorized-svc",
+        "description": "Should be rejected by RBAC guard.",
+        "owner_team": "Audit",
+        "tier": "tier-3"
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 403
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/problem+json
+    - expression: res.body.status
+      operator: eq
+      value: 403
+    - expression: res.body.title
+      operator: eq
+      value: Forbidden

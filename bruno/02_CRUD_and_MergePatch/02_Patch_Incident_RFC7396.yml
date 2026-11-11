@@ -1,0 +1,43 @@
+---
+info:
+  name: 02 Patch Incident RFC 7396 (Merge Patch + Null Unset)
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/api/incidents/{{createdIncidentId}}"
+  headers:
+    - name: Accept
+      value: application/hal+json
+    - name: Content-Type
+      value: application/merge-patch+json
+  auth:
+    type: basic
+    username: dev_alice
+    password: alice123
+  body:
+    type: text
+    data: |
+      {
+        "status": "mitigated",
+        "resolution_notes": "Cleared Redis cache and rebalanced worker pods.",
+        "release_id": null
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 200
+    - expression: res.body.status
+      operator: eq
+      value: mitigated
+    - expression: res.body.resolution_notes
+      operator: eq
+      value: Cleared Redis cache and rebalanced worker pods.
+    - expression: res.body.release_id
+      operator: isNull
+    - expression: res.body.title
+      operator: eq
+      value: Elevated latency on token introspection

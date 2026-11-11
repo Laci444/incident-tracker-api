@@ -1,0 +1,21 @@
+---
+info:
+  name: 03 Incident Item OPTIONS
+  type: http
+  seq: 3
+
+http:
+  method: OPTIONS
+  url: "{{baseUrl}}/api/incidents/1"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 204
+    - expression: res.headers['allow']
+      operator: contains
+      value: GET, HEAD, PUT, PATCH, DELETE, OPTIONS
+    - expression: res.headers['accept-patch']
+      operator: eq
+      value: application/merge-patch+json

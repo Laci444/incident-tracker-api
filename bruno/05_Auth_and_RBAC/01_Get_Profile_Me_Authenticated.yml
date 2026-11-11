@@ -1,0 +1,34 @@
+info:
+  name: 01 Get Current User Profile (Authenticated)
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/me"
+  headers:
+    - name: Accept
+      value: application/hal+json
+  auth:
+    type: basic
+    username: dev_alice
+    password: alice123
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.username
+      operator: eq
+      value: dev_alice
+    - expression: res.body.role
+      operator: eq
+      value: developer
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

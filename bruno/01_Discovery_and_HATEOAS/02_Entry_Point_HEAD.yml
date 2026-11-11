@@ -1,0 +1,24 @@
+---
+info:
+  name: 02 Entry Point HEAD
+  type: http
+  seq: 2
+
+http:
+  method: HEAD
+  url: "{{baseUrl}}/api"
+  headers:
+    - name: Accept
+      value: application/hal+json
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 200
+    - expression: res.headers['etag']
+      operator: isDefined
+    - expression: res.headers['content-length']
+      operator: isDefined
+    - expression: res.headers['cache-control']
+      operator: isDefined

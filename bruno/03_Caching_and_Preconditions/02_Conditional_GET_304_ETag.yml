@@ -1,0 +1,23 @@
+---
+info:
+  name: 02 Conditional GET with If-None-Match (304 Not Modified)
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/services/1"
+  headers:
+    - name: Accept
+      value: application/hal+json
+    - name: If-None-Match
+      value: "{{serviceEtag}}"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: 304
+    - expression: res.headers['etag']
+      operator: contains
+      value: "{{serviceEtag}}"
