@@ -1,12 +1,13 @@
 from typing import Annotated, Any, ClassVar, TypeVar
 
 import msgspec
+from litestar.params import Body
 
-from app.core.enums import UserRole
-from app.core.exceptions import BadRequestError, ValidationFailedError
+from app.core.enums import MediaType, UserRole
 from app.core.openapi import HALLinkDTO
 
 PatchT = TypeVar("PatchT", bound="MergePatchBase")
+MergePatchBody = Annotated[PatchT, Body(media_type=MediaType.MERGE_PATCH_JSON.value)]
 
 # Reusable constrained scalar types for automatic validation before controller execution
 ShortNameStr = Annotated[str, msgspec.Meta(min_length=2, max_length=100)]
@@ -29,7 +30,7 @@ HALLinksMap = dict[str, HALLinkDTO | list[HALLinkDTO]]
 
 
 class MergePatchBase(msgspec.Struct, kw_only=True):
-    """Base schema for RFC 7396 JSON Merge Patch payloads with built-in nullability validation."""
+    """Base schema for RFC 7396 JSON Merge Patch payloads."""
 
     __nullable_fields__: ClassVar[frozenset[str]] = frozenset()
     __lowercase_fields__: ClassVar[frozenset[str]] = frozenset()
@@ -40,39 +41,12 @@ class MergePatchBase(msgspec.Struct, kw_only=True):
             val = getattr(self, field_name)
             if val is msgspec.UNSET:
                 continue
-            if val is None and field_name not in self.__nullable_fields__:
-                raise ValidationFailedError(
-                    f"Field '{field_name}' is non-nullable and cannot be cleared via null in JSON Merge Patch."
-                )
             if isinstance(val, str):
                 val = val.strip()
                 if field_name in self.__lowercase_fields__:
                     val = val.lower()
             changes[field_name] = val
         return changes
-
-
-def decode_merge_patch(raw_body: bytes, schema_type: type[PatchT]) -> dict[str, Any]:
-    """Decodes an RFC 7396 application/merge-patch+json body and returns validated field changes."""
-    if not raw_body:
-        raise BadRequestError("Request body cannot be empty for JSON Merge Patch.")
-
-    try:
-        decoded_json = msgspec.json.decode(raw_body)
-    except msgspec.DecodeError as exc:
-        raise BadRequestError(f"Malformed JSON payload: {exc}") from exc
-
-    if not isinstance(decoded_json, dict):
-        raise ValidationFailedError(
-            "JSON Merge Patch payload for a resource must be a JSON object."
-        )
-
-    try:
-        patch_struct = msgspec.convert(decoded_json, type=schema_type, strict=True)
-    except msgspec.ValidationError as exc:
-        raise ValidationFailedError(str(exc)) from exc
-
-    return patch_struct.extract_changes()
 
 
 class ApiDiscoveryResponseDTO(msgspec.Struct, kw_only=True):

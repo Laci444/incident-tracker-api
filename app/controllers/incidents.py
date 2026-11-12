@@ -1,7 +1,6 @@
-from typing import Any, cast
+from typing import cast
 
 from litestar import Controller, Request, Response, delete, post, put, route
-from litestar.di import Provide
 
 from app.core.enums import (
     ApiPath,
@@ -21,9 +20,8 @@ from app.core.openapi import (
     build_mutation_headers,
     build_options_headers,
     build_read_headers,
-    merge_patch_openapi_extra,
 )
-from app.schemas.common import PageLimit, PageOffset, PositiveId, decode_merge_patch
+from app.schemas.common import MergePatchBody, PageLimit, PageOffset, PositiveId
 from app.schemas.incident import (
     IncidentCollectionResponseDTO,
     IncidentCreate,
@@ -33,10 +31,6 @@ from app.schemas.incident import (
 )
 from app.security.guards import require_writer
 from app.services.incidents import IncidentService
-
-
-async def provide_incident_patch_changes(request: Request) -> dict[str, Any]:
-    return decode_merge_patch(await request.body(), IncidentPatch)
 
 
 class IncidentController(Controller):
@@ -148,27 +142,19 @@ class IncidentController(Controller):
         name=RouteName.INCIDENT_PATCH.versioned(),
         status_code=200,
         guards=[require_writer],
-        dependencies={"patch_changes": Provide(provide_incident_patch_changes)},
         summary="Partially update an Incident (RFC 7396 JSON Merge Patch)",
         response_headers=build_mutation_headers(),
         responses=UPDATE_RESPONSES,
-        openapi_extra=merge_patch_openapi_extra(
-            {
-                "status": IncidentStatus.RESOLVED.value,
-                "resolution_notes": "Root cause fixed and verified.",
-                "release_id": None,
-            }
-        ),
     )
     async def patch_incident(
         self,
         request: Request,
         incident_service: IncidentService,
         incident_id: PositiveId,
-        patch_changes: dict[str, Any],
+        data: MergePatchBody[IncidentPatch],
     ) -> IncidentResponseDTO:
         incident = await incident_service.patch_incident(
-            incident_id, patch_changes, request.scope.get("user")
+            incident_id, data.extract_changes(), request.scope.get("user")
         )
         return cast(IncidentResponseDTO, incident)
 

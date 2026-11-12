@@ -31,14 +31,12 @@ class IncidentUpdate(msgspec.Struct, kw_only=True):
 
 
 class IncidentPatch(MergePatchBase, kw_only=True):
-    __nullable_fields__ = frozenset({"release_id", "resolution_notes"})
-
-    service_id: PositiveId | None | msgspec.UnsetType = msgspec.UNSET
+    service_id: PositiveId | msgspec.UnsetType = msgspec.UNSET
     release_id: PositiveId | None | msgspec.UnsetType = msgspec.UNSET
-    title: TitleStr | None | msgspec.UnsetType = msgspec.UNSET
-    summary: DescriptionStr | None | msgspec.UnsetType = msgspec.UNSET
-    severity: IncidentSeverity | None | msgspec.UnsetType = msgspec.UNSET
-    status: IncidentStatus | None | msgspec.UnsetType = msgspec.UNSET
+    title: TitleStr | msgspec.UnsetType = msgspec.UNSET
+    summary: DescriptionStr | msgspec.UnsetType = msgspec.UNSET
+    severity: IncidentSeverity | msgspec.UnsetType = msgspec.UNSET
+    status: IncidentStatus | msgspec.UnsetType = msgspec.UNSET
     resolution_notes: str | None | msgspec.UnsetType = msgspec.UNSET
 
 

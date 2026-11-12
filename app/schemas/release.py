@@ -17,11 +17,9 @@ class ReleaseCreate(msgspec.Struct, kw_only=True):
 
 
 class ReleasePatch(MergePatchBase, kw_only=True):
-    __nullable_fields__ = frozenset({"release_notes"})
-
-    version: VersionStr | None | msgspec.UnsetType = msgspec.UNSET
-    commit_sha: CommitShaStr | None | msgspec.UnsetType = msgspec.UNSET
-    environment: ReleaseEnvironment | None | msgspec.UnsetType = msgspec.UNSET
+    version: VersionStr | msgspec.UnsetType = msgspec.UNSET
+    commit_sha: CommitShaStr | msgspec.UnsetType = msgspec.UNSET
+    environment: ReleaseEnvironment | msgspec.UnsetType = msgspec.UNSET
     release_notes: str | None | msgspec.UnsetType = msgspec.UNSET
 
 

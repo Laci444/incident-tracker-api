@@ -25,22 +25,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -54,6 +38,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -120,22 +120,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -149,6 +133,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -217,22 +217,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -246,6 +230,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -312,22 +312,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -341,6 +325,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -409,22 +409,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -438,6 +422,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -504,22 +504,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -533,6 +517,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -663,22 +663,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -692,6 +676,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -806,19 +806,11 @@
           "201": {
             "description": "Document created, URL follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -838,14 +830,6 @@
                 "required": false,
                 "deprecated": false
               },
-              "ETag": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
               "Location": {
                 "schema": {
                   "type": "string"
@@ -854,11 +838,27 @@
                 "required": false,
                 "deprecated": false
               },
-              "Last-Modified": {
+              "Content-Security-Policy": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
                 "required": false,
                 "deprecated": false
               }
@@ -1036,22 +1036,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -1065,6 +1049,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -1182,19 +1182,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -1214,19 +1206,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -1344,19 +1344,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -1376,19 +1368,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -1638,19 +1638,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -1670,19 +1662,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -1786,23 +1786,25 @@
             "deprecated": false
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/merge-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicePatch"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -1822,19 +1824,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -1997,22 +2007,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -2026,6 +2020,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -2151,19 +2161,11 @@
           "201": {
             "description": "Document created, URL follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -2183,14 +2185,6 @@
                 "required": false,
                 "deprecated": false
               },
-              "ETag": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
               "Location": {
                 "schema": {
                   "type": "string"
@@ -2199,11 +2193,27 @@
                 "required": false,
                 "deprecated": false
               },
-              "Last-Modified": {
+              "Content-Security-Policy": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
                 "required": false,
                 "deprecated": false
               }
@@ -2354,22 +2364,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -2383,6 +2377,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -2500,19 +2510,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -2532,19 +2534,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -2765,19 +2775,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -2797,19 +2799,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -2913,23 +2923,25 @@
             "deprecated": false
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/merge-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReleasePatch"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -2949,19 +2961,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -3187,22 +3207,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -3216,6 +3220,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -3330,19 +3350,11 @@
           "201": {
             "description": "Document created, URL follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -3362,14 +3374,6 @@
                 "required": false,
                 "deprecated": false
               },
-              "ETag": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
               "Location": {
                 "schema": {
                   "type": "string"
@@ -3378,11 +3382,27 @@
                 "required": false,
                 "deprecated": false
               },
-              "Last-Modified": {
+              "Content-Security-Policy": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
                 "required": false,
                 "deprecated": false
               }
@@ -3596,22 +3616,6 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
-                "required": false,
-                "deprecated": false
-              },
               "Cache-Control": {
                 "schema": {
                   "type": "string"
@@ -3625,6 +3629,22 @@
                   "type": "string"
                 },
                 "description": "Indicates headers that influence content negotiation and representation.",
+                "required": false,
+                "deprecated": false
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
                 "required": false,
                 "deprecated": false
               },
@@ -3742,19 +3762,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -3774,19 +3786,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -3904,19 +3924,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -3936,19 +3948,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -4198,19 +4218,11 @@
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -4230,19 +4242,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -4346,23 +4366,25 @@
             "deprecated": false
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/merge-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncidentPatch"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Request fulfilled, document follows",
             "headers": {
-              "Link": {
+              "Last-Modified": {
                 "schema": {
                   "type": "string"
                 },
-                "description": "RFC 8288 Web Linking header containing IANA link relations.",
-                "required": false,
-                "deprecated": false
-              },
-              "Content-Security-Policy": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               },
@@ -4382,19 +4404,27 @@
                 "required": false,
                 "deprecated": false
               },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Strict Content-Security-Policy header enforced on all API responses.",
+                "required": false,
+                "deprecated": false
+              },
+              "Link": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "RFC 8288 Web Linking header containing IANA link relations.",
+                "required": false,
+                "deprecated": false
+              },
               "ETag": {
                 "schema": {
                   "type": "string"
                 },
                 "description": "Strong entity tag for conditional GET (304) and optimistic locking (412).",
-                "required": false,
-                "deprecated": false
-              },
-              "Last-Modified": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Last modification timestamp in RFC 9110 IMF-fixdate format.",
                 "required": false,
                 "deprecated": false
               }
@@ -4742,6 +4772,74 @@
         ],
         "title": "IncidentCreate"
       },
+      "IncidentPatch": {
+        "properties": {
+          "service_id": {
+            "oneOf": [
+              {
+                "type": "integer"
+              }
+            ],
+            "minimum": 1
+          },
+          "release_id": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "minimum": 1
+          },
+          "title": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 150,
+            "minLength": 3
+          },
+          "summary": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 2000,
+            "minLength": 5
+          },
+          "severity": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/IncidentSeverity"
+              }
+            ]
+          },
+          "status": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/IncidentStatus"
+              }
+            ]
+          },
+          "resolution_notes": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [],
+        "title": "IncidentPatch"
+      },
       "IncidentResponseDTO": {
         "properties": {
           "id": {
@@ -5035,6 +5133,49 @@
         "title": "ReleaseEnvironment",
         "default": "production"
       },
+      "ReleasePatch": {
+        "properties": {
+          "version": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 40,
+            "minLength": 2
+          },
+          "commit_sha": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 40,
+            "minLength": 7,
+            "pattern": "^[0-9a-fA-F]{7,40}$"
+          },
+          "environment": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReleaseEnvironment"
+              }
+            ]
+          },
+          "release_notes": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [],
+        "title": "ReleasePatch"
+      },
       "ReleaseResponseDTO": {
         "properties": {
           "id": {
@@ -5187,6 +5328,64 @@
           "slug"
         ],
         "title": "ServiceCreate"
+      },
+      "ServicePatch": {
+        "properties": {
+          "name": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 100,
+            "minLength": 2
+          },
+          "slug": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 100,
+            "minLength": 2,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 2000,
+            "minLength": 5
+          },
+          "owner_team": {
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "maxLength": 100,
+            "minLength": 2
+          },
+          "tier": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ServiceTier"
+              }
+            ]
+          },
+          "is_active": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [],
+        "title": "ServicePatch"
       },
       "ServiceResponseDTO": {
         "properties": {
