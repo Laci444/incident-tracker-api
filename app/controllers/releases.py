@@ -1,9 +1,8 @@
-from typing import Any, cast
+from typing import cast
 
 from litestar import Controller, Request, Response, delete, post, route
-from litestar.di import Provide
 
-from app.core.enums import ApiPath, HttpMethod, ReleaseEnvironment, RouteName
+from app.core.enums import ApiPath, HttpMethod, RouteName
 from app.core.hypermedia import build_options_response
 from app.core.openapi import (
     CREATE_RESPONSES,
@@ -14,9 +13,8 @@ from app.core.openapi import (
     build_mutation_headers,
     build_options_headers,
     build_read_headers,
-    merge_patch_openapi_extra,
 )
-from app.schemas.common import PageLimit, PageOffset, PositiveId, decode_merge_patch
+from app.schemas.common import MergePatchBody, PageLimit, PageOffset, PositiveId
 from app.schemas.release import (
     ReleaseCollectionResponseDTO,
     ReleaseCreate,
@@ -25,10 +23,6 @@ from app.schemas.release import (
 )
 from app.security.guards import require_writer
 from app.services.releases import ReleaseService
-
-
-async def provide_release_patch_changes(request: Request) -> dict[str, Any]:
-    return decode_merge_patch(await request.body(), ReleasePatch)
 
 
 class ReleaseController(Controller):
@@ -112,23 +106,19 @@ class ReleaseController(Controller):
         name=RouteName.RELEASE_PATCH.versioned(),
         status_code=200,
         guards=[require_writer],
-        dependencies={"patch_changes": Provide(provide_release_patch_changes)},
         summary="Partially update a Release (RFC 7396 JSON Merge Patch)",
         response_headers=build_mutation_headers(),
         responses=UPDATE_RESPONSES,
-        openapi_extra=merge_patch_openapi_extra(
-            {"environment": ReleaseEnvironment.PRODUCTION.value, "release_notes": None}
-        ),
     )
     async def patch_release(
         self,
         request: Request,
         release_service: ReleaseService,
         release_id: PositiveId,
-        patch_changes: dict[str, Any],
+        data: MergePatchBody[ReleasePatch],
     ) -> ReleaseResponseDTO:
         release = await release_service.patch_release(
-            release_id, patch_changes, request.scope.get("user")
+            release_id, data.extract_changes(), request.scope.get("user")
         )
         return cast(ReleaseResponseDTO, release)
 

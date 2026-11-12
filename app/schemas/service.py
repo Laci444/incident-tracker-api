@@ -29,15 +29,14 @@ class ServiceUpdate(msgspec.Struct, kw_only=True):
 
 
 class ServicePatch(MergePatchBase, kw_only=True):
-    __nullable_fields__ = frozenset()
     __lowercase_fields__ = frozenset({"slug"})
 
-    name: ShortNameStr | None | msgspec.UnsetType = msgspec.UNSET
-    slug: SlugStr | None | msgspec.UnsetType = msgspec.UNSET
-    description: DescriptionStr | None | msgspec.UnsetType = msgspec.UNSET
-    owner_team: ShortNameStr | None | msgspec.UnsetType = msgspec.UNSET
-    tier: ServiceTier | None | msgspec.UnsetType = msgspec.UNSET
-    is_active: bool | None | msgspec.UnsetType = msgspec.UNSET
+    name: ShortNameStr | msgspec.UnsetType = msgspec.UNSET
+    slug: SlugStr | msgspec.UnsetType = msgspec.UNSET
+    description: DescriptionStr | msgspec.UnsetType = msgspec.UNSET
+    owner_team: ShortNameStr | msgspec.UnsetType = msgspec.UNSET
+    tier: ServiceTier | msgspec.UnsetType = msgspec.UNSET
+    is_active: bool | msgspec.UnsetType = msgspec.UNSET
 
 
 class ServiceResponseDTO(msgspec.Struct, kw_only=True):

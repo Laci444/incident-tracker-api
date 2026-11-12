@@ -164,22 +164,3 @@ UPDATE_RESPONSES = build_error_responses(
 )
 DELETE_RESPONSES = build_error_responses(401, 403, 404, 405, 412)
 OPTIONS_RESPONSES = build_error_responses(405)
-
-
-def merge_patch_openapi_extra(example: dict[str, Any]) -> dict[str, Any]:
-    """Documents RFC 7396 application/merge-patch+json request bodies in OpenAPI."""
-    return {
-        "requestBody": {
-            "required": True,
-            "description": (
-                "RFC 7396 JSON Merge Patch payload. Specify fields to update, "
-                "or set nullable fields to `null` to clear them."
-            ),
-            "content": {
-                MediaType.MERGE_PATCH_JSON: {
-                    "schema": {"type": "object"},
-                    "example": example,
-                }
-            },
-        }
-    }

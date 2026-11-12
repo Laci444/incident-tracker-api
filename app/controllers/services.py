@@ -1,7 +1,6 @@
-from typing import Any, cast
+from typing import cast
 
-from litestar import Controller, Request, Response, delete, post, put, route
-from litestar.di import Provide
+from litestar import Controller, Response, delete, post, put, route
 
 from app.core.enums import ApiPath, HttpMethod, RouteName, ServiceTier
 from app.core.hypermedia import build_options_response
@@ -15,9 +14,8 @@ from app.core.openapi import (
     build_mutation_headers,
     build_options_headers,
     build_read_headers,
-    merge_patch_openapi_extra,
 )
-from app.schemas.common import PageLimit, PageOffset, PositiveId, decode_merge_patch
+from app.schemas.common import MergePatchBody, PageLimit, PageOffset, PositiveId
 from app.schemas.service import (
     ServiceCollectionResponseDTO,
     ServiceCreate,
@@ -27,10 +25,6 @@ from app.schemas.service import (
 )
 from app.security.guards import require_admin, require_writer
 from app.services.service_catalog import ServiceCatalogService
-
-
-async def provide_service_patch_changes(request: Request) -> dict[str, Any]:
-    return decode_merge_patch(await request.body(), ServicePatch)
 
 
 class ServiceController(Controller):
@@ -131,25 +125,19 @@ class ServiceController(Controller):
         name=RouteName.SERVICE_PATCH.versioned(),
         status_code=200,
         guards=[require_writer],
-        dependencies={"patch_changes": Provide(provide_service_patch_changes)},
         summary="Partially update a Service (RFC 7396 JSON Merge Patch)",
         response_headers=build_mutation_headers(),
         responses=UPDATE_RESPONSES,
-        openapi_extra=merge_patch_openapi_extra(
-            {
-                "tier": ServiceTier.TIER_2.value,
-                "owner_team": "Core Reliability",
-                "is_active": False,
-            }
-        ),
     )
     async def patch_service(
         self,
         service_catalog: ServiceCatalogService,
         service_id: PositiveId,
-        patch_changes: dict[str, Any],
+        data: MergePatchBody[ServicePatch],
     ) -> ServiceResponseDTO:
-        service = await service_catalog.patch_service(service_id, patch_changes)
+        service = await service_catalog.patch_service(
+            service_id, data.extract_changes()
+        )
         return cast(ServiceResponseDTO, service)
 
     @delete(
