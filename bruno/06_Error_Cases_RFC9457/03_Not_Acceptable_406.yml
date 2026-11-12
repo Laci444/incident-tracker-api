@@ -6,7 +6,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/services"
+  url: "{{baseUrl}}/api/v1/services"
   headers:
     - name: Accept
       value: text/csv

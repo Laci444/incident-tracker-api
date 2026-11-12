@@ -1,129 +1,257 @@
-from typing import Any
+from typing import Any, cast
 
 from litestar import Controller, Request, Response, route
 
-from app.core.caching import (
-    build_cache_headers,
-    compute_payload_etag,
-    evaluate_conditional_get,
+from app.core.enums import (
+    ApiPath,
+    ApiVersion,
+    CollectionName,
+    HttpMethod,
+    LinkRel,
+    ResourceName,
+    RouteName,
+    UserRole,
 )
 from app.core.hypermedia import (
+    DomainPayload,
+    HypermediaAssembler,
     build_options_response,
-    format_rfc8288_link_header,
     hal_link,
 )
-from app.core.renderers import render_resource_response
+from app.core.openapi import (
+    AUTH_READ_RESPONSES,
+    OPTIONS_RESPONSES,
+    PUBLIC_COLLECTION_RESPONSES,
+    build_options_headers,
+    build_read_headers,
+)
+from app.schemas.common import (
+    ApiDiscoveryResponseDTO,
+    UserProfileResponseDTO,
+    VersionIndexResponseDTO,
+)
 from app.security.auth import AuthenticatedUser
 from app.security.guards import require_authenticated
 
+_ROLE_PERMISSIONS: dict[UserRole, list[str]] = {
+    UserRole.ADMIN: ["read", "create", "update_any", "delete_any"],
+    UserRole.DEVELOPER: ["read", "create", "update_own", "delete_own"],
+    UserRole.VIEWER: ["read"],
+}
 
-class RootController(Controller):
-    path = "/api"
+
+class DiscoveryController(Controller):
+    """Version-agnostic API discovery root (/api)."""
+
+    path = ApiPath.ROOT.value
     tags = ["1. Discovery & Profile"]
 
     @route(
         path="",
-        http_method=["GET", "HEAD"],
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.API_DISCOVERY.value,
         status_code=200,
-        summary="API Entry Point (HATEOAS Root)",
+        summary="Version-Agnostic API Discovery Entry Point",
+        response_headers=build_read_headers(include_last_modified=False),
+        responses=PUBLIC_COLLECTION_RESPONSES,
     )
-    async def get_entry_point(self, request: Request) -> Response:
-        user: AuthenticatedUser | None = request.scope.get("user")
+    async def get_discovery_root(self, request: Request) -> ApiDiscoveryResponseDTO:
+        assembler = HypermediaAssembler(request, version=ApiVersion.CURRENT)
         links: dict[str, Any] = {
-            "self": hal_link("/api", title="API Entry Point"),
-            "services": hal_link("/api/services", title="Cloud Services Catalog"),
-            "incidents": hal_link("/api/incidents", title="Global Incident Tracker"),
-            "me": hal_link("/api/me", title="Current Authenticated User Profile"),
-            "describedby": hal_link(
-                "/schema/openapi.json", title="OpenAPI 3.1 Specification"
+            LinkRel.SELF.value: hal_link(
+                assembler.resolve_url(RouteName.API_DISCOVERY),
+                title="API Discovery Root",
             ),
-            "help": hal_link("/schema/swagger", title="Interactive Swagger UI"),
+            LinkRel.LATEST_VERSION.value: hal_link(
+                assembler.resolve_url(RouteName.VERSION_ROOT),
+                title=f"API {ApiVersion.CURRENT.value.upper()} Entry Point",
+            ),
+            CollectionName.SERVICES.value: hal_link(
+                assembler.resolve_url(RouteName.SERVICES_LIST),
+                title="Cloud Services Catalog",
+            ),
+            CollectionName.INCIDENTS.value: hal_link(
+                assembler.resolve_url(RouteName.INCIDENTS_LIST),
+                title="Global Incident Tracker",
+            ),
+            ResourceName.PROFILE.value: hal_link(
+                assembler.resolve_url(RouteName.ME),
+                title="Authenticated User Profile",
+            ),
+            LinkRel.DESCRIBEDBY.value: hal_link(
+                ApiPath.OPENAPI_JSON.value,
+                title="OpenAPI 3.1 Specification",
+            ),
+            LinkRel.HELP.value: hal_link(
+                ApiPath.SWAGGER_UI.value,
+                title="Interactive Swagger UI",
+            ),
         }
-
-        payload = {
-            "api_name": "Cloud-Native Incident & Release Management API",
-            "version": "1.0.0",
-            "rmm_level": 3,
-            "authenticated_as": user.username if user else None,
-            "_links": links,
-        }
-
-        etag = compute_payload_etag(payload)
-        cond_response = evaluate_conditional_get(
-            request, etag=etag, is_private=user is not None
+        payload = DomainPayload(
+            data={
+                "api_name": "Cloud-Native Incident & Release Management API",
+                "current_version": ApiVersion.CURRENT.value,
+                "supported_versions": [ApiVersion.V1.value],
+                "rmm_level": 3,
+            },
+            links=links,
+            xml_root=ResourceName.API,
+            is_private=False,
         )
-        if cond_response is not None:
-            return cond_response
-
-        headers = build_cache_headers(
-            etag=etag, max_age=60, is_private=user is not None
-        )
-        headers["Link"] = format_rfc8288_link_header(links)
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="api"
-        )
+        return cast(ApiDiscoveryResponseDTO, payload)
 
     @route(
         path="",
-        http_method=["OPTIONS"],
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.API_DISCOVERY_OPTIONS.value,
         status_code=204,
-        summary="OPTIONS for API Entry Point",
+        summary="OPTIONS for API Discovery Entry Point",
+        response_headers=build_options_headers(),
+        responses=OPTIONS_RESPONSES,
     )
-    async def options_entry_point(self) -> Response:
-        return build_options_response(["GET", "HEAD", "OPTIONS"])
+    async def options_discovery_root(self) -> Response:
+        return build_options_response(
+            [HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS]
+        )
+
+
+class VersionRootController(Controller):
+    """Versioned entry point (/api/v1) and user profile (/api/v1/me)."""
+
+    path = ""
+    tags = ["1. Discovery & Profile"]
 
     @route(
-        path="/me",
-        http_method=["GET", "HEAD"],
+        path="",
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.VERSION_ROOT.versioned(),
         status_code=200,
-        guards=[require_authenticated],
-        summary="Current Authenticated User Profile",
+        summary="Versioned API Entry Point (v1)",
+        response_headers=build_read_headers(include_last_modified=False),
+        responses=PUBLIC_COLLECTION_RESPONSES,
     )
-    async def get_current_user(self, request: Request) -> Response:
-        user: AuthenticatedUser = request.user
-        permissions_map = {
-            "admin": ["read", "create", "update_any", "delete_any"],
-            "developer": ["read", "create", "update_own", "delete_own"],
-            "viewer": ["read"],
-        }
-
+    async def get_v1_root(self, request: Request) -> VersionIndexResponseDTO:
+        user: AuthenticatedUser | None = request.scope.get("user")
+        assembler = HypermediaAssembler(request, version=ApiVersion.V1)
         links: dict[str, Any] = {
-            "self": hal_link("/api/me", title=user.display_name),
-            "up": hal_link("/api", title="API Entry Point"),
-            "services": hal_link("/api/services", title="Browse Services"),
-            "related": hal_link(
-                f"/api/incidents?reported_by={user.username}",
-                title=f"Incidents Reported by {user.username}",
+            LinkRel.SELF.value: hal_link(
+                assembler.resolve_url(RouteName.VERSION_ROOT),
+                title="API v1 Entry Point",
             ),
-            "describedby": hal_link(
-                "/schema/openapi.json", title="OpenAPI Specification"
+            LinkRel.UP.value: hal_link(
+                assembler.resolve_url(RouteName.API_DISCOVERY),
+                title="API Discovery Root",
+            ),
+            CollectionName.SERVICES.value: hal_link(
+                assembler.resolve_url(RouteName.SERVICES_LIST),
+                title="Cloud Services Catalog",
+            ),
+            CollectionName.INCIDENTS.value: hal_link(
+                assembler.resolve_url(RouteName.INCIDENTS_LIST),
+                title="Global Incident Tracker",
+            ),
+            ResourceName.PROFILE.value: hal_link(
+                assembler.resolve_url(RouteName.ME),
+                title="Current Authenticated User Profile",
+            ),
+            LinkRel.DESCRIBEDBY.value: hal_link(
+                ApiPath.OPENAPI_JSON.value,
+                title="OpenAPI 3.1 Specification",
+            ),
+            LinkRel.HELP.value: hal_link(
+                ApiPath.SWAGGER_UI.value,
+                title="Interactive Swagger UI",
             ),
         }
+        payload = DomainPayload(
+            data={
+                "api_name": "Cloud-Native Incident & Release Management API",
+                "version": ApiVersion.V1.value,
+                "rmm_level": 3,
+                "authenticated_as": user.username if user else None,
+            },
+            links=links,
+            xml_root=ResourceName.VERSION_INDEX,
+            is_private=user is not None,
+        )
+        return cast(VersionIndexResponseDTO, payload)
 
-        payload = {
-            "username": user.username,
-            "display_name": user.display_name,
-            "role": user.role,
-            "permissions": permissions_map.get(user.role, ["read"]),
-            "_links": links,
-        }
-
-        etag = compute_payload_etag(payload)
-        cond_response = evaluate_conditional_get(request, etag=etag, is_private=True)
-        if cond_response is not None:
-            return cond_response
-
-        headers = build_cache_headers(etag=etag, max_age=60, is_private=True)
-        headers["Link"] = format_rfc8288_link_header(links)
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="profile"
+    @route(
+        path="",
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.VERSION_ROOT_OPTIONS.versioned(),
+        status_code=204,
+        summary="OPTIONS for Versioned Entry Point",
+        response_headers=build_options_headers(),
+        responses=OPTIONS_RESPONSES,
+    )
+    async def options_v1_root(self) -> Response:
+        return build_options_response(
+            [HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS]
         )
 
     @route(
-        path="/me",
-        http_method=["OPTIONS"],
+        path=ApiPath.ME.value,
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.ME.versioned(),
+        status_code=200,
+        guards=[require_authenticated],
+        summary="Current Authenticated User Profile",
+        response_headers=build_read_headers(include_last_modified=False),
+        responses=AUTH_READ_RESPONSES,
+    )
+    async def get_current_user(self, request: Request) -> UserProfileResponseDTO:
+        user: AuthenticatedUser = request.user
+        assembler = HypermediaAssembler(request, version=ApiVersion.V1)
+        incidents_uri = assembler.resolve_url(
+            RouteName.INCIDENTS_LIST, reported_by=user.username
+        )
+
+        links: dict[str, Any] = {
+            LinkRel.SELF.value: hal_link(
+                assembler.resolve_url(RouteName.ME),
+                title=user.display_name,
+            ),
+            LinkRel.UP.value: hal_link(
+                assembler.resolve_url(RouteName.VERSION_ROOT),
+                title="API v1 Entry Point",
+            ),
+            CollectionName.SERVICES.value: hal_link(
+                assembler.resolve_url(RouteName.SERVICES_LIST),
+                title="Browse Services",
+            ),
+            LinkRel.RELATED.value: hal_link(
+                incidents_uri,
+                title=f"Incidents Reported by {user.username}",
+            ),
+            LinkRel.DESCRIBEDBY.value: hal_link(
+                ApiPath.OPENAPI_JSON.value,
+                title="OpenAPI Specification",
+            ),
+        }
+        payload = DomainPayload(
+            data={
+                "username": user.username,
+                "display_name": user.display_name,
+                "role": user.role,
+                "permissions": _ROLE_PERMISSIONS.get(user.role, ["read"]),
+            },
+            links=links,
+            xml_root=ResourceName.PROFILE,
+            is_private=True,
+        )
+        return cast(UserProfileResponseDTO, payload)
+
+    @route(
+        path=ApiPath.ME.value,
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.ME_OPTIONS.versioned(),
         status_code=204,
         summary="OPTIONS for User Profile",
+        response_headers=build_options_headers(),
+        responses=OPTIONS_RESPONSES,
     )
     async def options_current_user(self) -> Response:
-        return build_options_response(["GET", "HEAD", "OPTIONS"])
+        return build_options_response(
+            [HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS]
+        )

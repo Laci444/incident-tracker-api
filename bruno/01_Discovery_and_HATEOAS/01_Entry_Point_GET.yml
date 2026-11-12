@@ -37,7 +37,7 @@ runtime:
       value: /api
     - expression: res.body._links.services.href
       operator: eq
-      value: /api/services
+      value: /api/v1/services
     - expression: res.body._links.incidents.href
       operator: eq
-      value: /api/incidents
+      value: /api/v1/incidents

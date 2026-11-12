@@ -6,7 +6,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/api/me"
+  url: "{{baseUrl}}/api/v1/me"
   headers:
     - name: Accept
       value: application/hal+json

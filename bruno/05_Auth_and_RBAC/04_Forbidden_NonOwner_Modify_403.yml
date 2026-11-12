@@ -6,7 +6,7 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/api/incidents/2"
+  url: "{{baseUrl}}/api/v1/incidents/2"
   headers:
     - name: Accept
       value: application/hal+json

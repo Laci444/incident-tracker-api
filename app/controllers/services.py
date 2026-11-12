@@ -1,367 +1,190 @@
-from typing import Any
+from typing import Any, cast
 
-import msgspec
 from litestar import Controller, Request, Response, delete, post, put, route
-from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from litestar.di import Provide
 
-from app.core.caching import (
-    build_cache_headers,
-    compute_payload_etag,
-    evaluate_conditional_get,
-    verify_if_match,
+from app.core.enums import ApiPath, HttpMethod, RouteName, ServiceTier
+from app.core.hypermedia import build_options_response
+from app.core.openapi import (
+    CREATE_RESPONSES,
+    DELETE_RESPONSES,
+    OPTIONS_RESPONSES,
+    PUBLIC_COLLECTION_RESPONSES,
+    PUBLIC_ITEM_RESPONSES,
+    UPDATE_RESPONSES,
+    build_mutation_headers,
+    build_options_headers,
+    build_read_headers,
+    merge_patch_openapi_extra,
 )
-from app.core.exceptions import ProblemException
-from app.core.hypermedia import (
-    build_options_response,
-    format_rfc8288_link_header,
-    hal_link,
-)
-from app.core.renderers import render_resource_response
-from app.db.models import ServiceModel, utc_now
-from app.schemas.common import merge_patch_openapi_body, parse_merge_patch_body
+from app.schemas.common import PageLimit, PageOffset, PositiveId, decode_merge_patch
 from app.schemas.service import (
+    ServiceCollectionResponseDTO,
     ServiceCreate,
     ServicePatch,
+    ServiceResponseDTO,
     ServiceUpdate,
-    serialize_service_hal,
-    validate_service_tier,
 )
-from app.security.auth import AuthenticatedUser
 from app.security.guards import require_admin, require_writer
+from app.services.service_catalog import ServiceCatalogService
 
 
-async def _get_service_or_404(
-    db_session: AsyncSession, service_id: int
-) -> ServiceModel:
-    service = await db_session.get(ServiceModel, service_id)
-    if service is None:
-        raise ProblemException(
-            status_code=404,
-            title="Resource Not Found",
-            detail=f"Service with id={service_id} does not exist.",
-            type_slug="service-not-found",
-        )
-    return service
+async def provide_service_patch_changes(request: Request) -> dict[str, Any]:
+    return decode_merge_patch(await request.body(), ServicePatch)
 
 
 class ServiceController(Controller):
-    path = "/api/services"
+    path = ""
     tags = ["2. Services"]
 
     @route(
-        path="",
-        http_method=["GET", "HEAD"],
+        path=ApiPath.SERVICES.value,
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.SERVICES_LIST.versioned(),
         status_code=200,
         summary="List Services (with pagination & filtering)",
+        response_headers=build_read_headers(include_last_modified=False),
+        responses=PUBLIC_COLLECTION_RESPONSES,
     )
     async def list_services(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        tier: str | None = None,
+        service_catalog: ServiceCatalogService,
+        tier: ServiceTier | None = None,
         is_active: bool | None = None,
-        limit: int = 10,
-        offset: int = 0,
-    ) -> Response:
-        limit = max(1, min(limit, 50))
-        offset = max(0, offset)
-
-        stmt = select(ServiceModel).order_by(ServiceModel.id)
-        count_stmt = select(func.count(ServiceModel.id))
-
-        if tier is not None:
-            stmt = stmt.where(ServiceModel.tier == tier)
-            count_stmt = count_stmt.where(ServiceModel.tier == tier)
-        if is_active is not None:
-            stmt = stmt.where(ServiceModel.is_active == is_active)
-            count_stmt = count_stmt.where(ServiceModel.is_active == is_active)
-
-        total: int = (await db_session.scalar(count_stmt)) or 0
-        services = list(
-            (await db_session.scalars(stmt.limit(limit).offset(offset))).all()
+        limit: PageLimit = 10,
+        offset: PageOffset = 0,
+    ) -> ServiceCollectionResponseDTO:
+        page = await service_catalog.list_services(
+            tier=tier, is_active=is_active, limit=limit, offset=offset
         )
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        embedded_items = [serialize_service_hal(svc, user) for svc in services]
-
-        links: dict[str, Any] = {
-            "self": hal_link(
-                f"/api/services?limit={limit}&offset={offset}",
-                title="Services Collection",
-            ),
-            "up": hal_link("/api", title="API Entry Point"),
-            "first": hal_link(
-                f"/api/services?limit={limit}&offset=0", title="First Page"
-            ),
-            "item": [
-                hal_link(f"/api/services/{svc.id}", title=svc.name) for svc in services
-            ],
-            "describedby": hal_link(
-                "/schema/openapi.json", title="OpenAPI Specification"
-            ),
-        }
-        if offset + limit < total:
-            links["next"] = hal_link(
-                f"/api/services?limit={limit}&offset={offset + limit}",
-                title="Next Page",
-            )
-        if offset > 0:
-            prev_offset = max(0, offset - limit)
-            links["prev"] = hal_link(
-                f"/api/services?limit={limit}&offset={prev_offset}",
-                title="Previous Page",
-            )
-        if user and user.role in ("admin", "developer"):
-            links["create-form"] = hal_link(
-                "/api/services", title="Register New Service", method="POST"
-            )
-
-        payload = {
-            "total": total,
-            "count": len(embedded_items),
-            "limit": limit,
-            "offset": offset,
-            "_links": links,
-            "_embedded": {"services": embedded_items},
-        }
-
-        etag = compute_payload_etag(payload)
-        cond_response = evaluate_conditional_get(request, etag=etag)
-        if cond_response is not None:
-            return cond_response
-
-        headers = build_cache_headers(etag=etag, max_age=30)
-        headers["Link"] = format_rfc8288_link_header(links)
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="services"
-        )
+        return cast(ServiceCollectionResponseDTO, page)
 
     @post(
-        path="",
+        path=ApiPath.SERVICES.value,
+        name=RouteName.SERVICES_CREATE.versioned(),
         status_code=201,
         guards=[require_writer],
         summary="Create a new Service",
+        response_headers=build_mutation_headers(is_created=True),
+        responses=CREATE_RESPONSES,
     )
     async def create_service(
         self,
-        request: Request,
-        db_session: AsyncSession,
+        service_catalog: ServiceCatalogService,
         data: ServiceCreate,
-    ) -> Response:
-        validate_service_tier(data.tier)
-
-        service = ServiceModel(
-            name=data.name.strip(),
-            slug=data.slug.strip().lower(),
-            description=data.description.strip(),
-            owner_team=data.owner_team.strip(),
-            tier=data.tier,
-            is_active=data.is_active,
-        )
-        db_session.add(service)
-        try:
-            await db_session.commit()
-            await db_session.refresh(service)
-        except IntegrityError as exc:
-            await db_session.rollback()
-            raise ProblemException(
-                status_code=409,
-                title="Conflict",
-                detail=f"A service with name '{data.name}' or slug '{data.slug}' already exists.",
-                type_slug="duplicate-service",
-            ) from exc
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        payload = serialize_service_hal(service, user)
-        etag = service.compute_etag()
-
-        headers = build_cache_headers(etag=etag, last_modified=service.updated_at)
-        headers["Location"] = f"/api/services/{service.id}"
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=201, headers=headers, xml_root="service"
-        )
+    ) -> ServiceResponseDTO:
+        service = await service_catalog.create_service(data)
+        return cast(ServiceResponseDTO, service)
 
     @route(
-        path="",
-        http_method=["OPTIONS"],
+        path=ApiPath.SERVICES.value,
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.SERVICES_OPTIONS.versioned(),
         status_code=204,
         summary="OPTIONS for Services Collection",
+        response_headers=build_options_headers(),
+        responses=OPTIONS_RESPONSES,
     )
     async def options_services_collection(self) -> Response:
-        return build_options_response(["GET", "HEAD", "POST", "OPTIONS"])
+        return build_options_response(
+            [HttpMethod.GET, HttpMethod.HEAD, HttpMethod.POST, HttpMethod.OPTIONS]
+        )
 
     @route(
-        path="/{service_id:int}",
-        http_method=["GET", "HEAD"],
+        path=ApiPath.SERVICE_ITEM.value,
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.SERVICE_DETAIL.versioned(),
         status_code=200,
         summary="Get a single Service by ID",
+        response_headers=build_read_headers(include_last_modified=True),
+        responses=PUBLIC_ITEM_RESPONSES,
     )
     async def get_service(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        service_id: int,
-    ) -> Response:
-        service = await _get_service_or_404(db_session, service_id)
-        etag = service.compute_etag()
-
-        cond_response = evaluate_conditional_get(
-            request, etag=etag, last_modified=service.updated_at
-        )
-        if cond_response is not None:
-            return cond_response
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        payload = serialize_service_hal(service, user)
-
-        headers = build_cache_headers(
-            etag=etag, last_modified=service.updated_at, max_age=60
-        )
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="service"
-        )
+        service_catalog: ServiceCatalogService,
+        service_id: PositiveId,
+    ) -> ServiceResponseDTO:
+        service = await service_catalog.get_service(service_id)
+        return cast(ServiceResponseDTO, service)
 
     @put(
-        path="/{service_id:int}",
+        path=ApiPath.SERVICE_ITEM.value,
+        name=RouteName.SERVICE_REPLACE.versioned(),
         status_code=200,
         guards=[require_writer],
         summary="Replace a Service (Full Update)",
+        response_headers=build_mutation_headers(),
+        responses=UPDATE_RESPONSES,
     )
     async def replace_service(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        service_id: int,
+        service_catalog: ServiceCatalogService,
+        service_id: PositiveId,
         data: ServiceUpdate,
-    ) -> Response:
-        service = await _get_service_or_404(db_session, service_id)
-        verify_if_match(request, service.compute_etag())
-        validate_service_tier(data.tier)
-
-        service.name = data.name.strip()
-        service.slug = data.slug.strip().lower()
-        service.description = data.description.strip()
-        service.owner_team = data.owner_team.strip()
-        service.tier = data.tier
-        service.is_active = data.is_active
-        service.updated_at = utc_now()
-
-        try:
-            await db_session.commit()
-            await db_session.refresh(service)
-        except IntegrityError as exc:
-            await db_session.rollback()
-            raise ProblemException(
-                status_code=409,
-                title="Conflict",
-                detail="Service name or slug conflicts with an existing service.",
-                type_slug="duplicate-service",
-            ) from exc
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        payload = serialize_service_hal(service, user)
-        etag = service.compute_etag()
-        headers = build_cache_headers(etag=etag, last_modified=service.updated_at)
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="service"
-        )
+    ) -> ServiceResponseDTO:
+        service = await service_catalog.replace_service(service_id, data)
+        return cast(ServiceResponseDTO, service)
 
     @route(
-        path="/{service_id:int}",
-        http_method=["PATCH"],
+        path=ApiPath.SERVICE_ITEM.value,
+        http_method=[HttpMethod.PATCH],
+        name=RouteName.SERVICE_PATCH.versioned(),
         status_code=200,
         guards=[require_writer],
+        dependencies={"patch_changes": Provide(provide_service_patch_changes)},
         summary="Partially update a Service (RFC 7396 JSON Merge Patch)",
-        openapi_extra=merge_patch_openapi_body(
-            {"tier": "tier-2", "owner_team": "Core Reliability", "is_active": False}
+        response_headers=build_mutation_headers(),
+        responses=UPDATE_RESPONSES,
+        openapi_extra=merge_patch_openapi_extra(
+            {
+                "tier": ServiceTier.TIER_2.value,
+                "owner_team": "Core Reliability",
+                "is_active": False,
+            }
         ),
     )
     async def patch_service(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        service_id: int,
-    ) -> Response:
-        service = await _get_service_or_404(db_session, service_id)
-        verify_if_match(request, service.compute_etag())
-
-        patch_data = await parse_merge_patch_body(request, ServicePatch)
-
-        for field_name in (
-            "name",
-            "slug",
-            "description",
-            "owner_team",
-            "tier",
-            "is_active",
-        ):
-            val = getattr(patch_data, field_name)
-            if val is not msgspec.UNSET:
-                if val is None:
-                    raise ProblemException(
-                        status_code=422,
-                        title="Unprocessable Content",
-                        detail=f"Field '{field_name}' is non-nullable and cannot be removed via null.",
-                        type_slug="non-nullable-field",
-                    )
-                if field_name == "tier":
-                    validate_service_tier(val)
-                if isinstance(val, str):
-                    val = val.strip().lower() if field_name == "slug" else val.strip()
-                setattr(service, field_name, val)
-
-        service.updated_at = utc_now()
-        try:
-            await db_session.commit()
-            await db_session.refresh(service)
-        except IntegrityError as exc:
-            await db_session.rollback()
-            raise ProblemException(
-                status_code=409,
-                title="Conflict",
-                detail="Patched name or slug conflicts with an existing service.",
-                type_slug="duplicate-service",
-            ) from exc
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        payload = serialize_service_hal(service, user)
-        etag = service.compute_etag()
-        headers = build_cache_headers(etag=etag, last_modified=service.updated_at)
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="service"
-        )
+        service_catalog: ServiceCatalogService,
+        service_id: PositiveId,
+        patch_changes: dict[str, Any],
+    ) -> ServiceResponseDTO:
+        service = await service_catalog.patch_service(service_id, patch_changes)
+        return cast(ServiceResponseDTO, service)
 
     @delete(
-        path="/{service_id:int}",
+        path=ApiPath.SERVICE_ITEM.value,
+        name=RouteName.SERVICE_DELETE.versioned(),
         status_code=204,
         guards=[require_admin],
         summary="Delete a Service (Admin only)",
+        responses=DELETE_RESPONSES,
     )
     async def delete_service(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        service_id: int,
+        service_catalog: ServiceCatalogService,
+        service_id: PositiveId,
     ) -> None:
-        service = await _get_service_or_404(db_session, service_id)
-        verify_if_match(request, service.compute_etag())
-        await db_session.delete(service)
-        await db_session.commit()
+        await service_catalog.delete_service(service_id)
 
     @route(
-        path="/{service_id:int}",
-        http_method=["OPTIONS"],
+        path=ApiPath.SERVICE_ITEM.value,
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.SERVICE_ITEM_OPTIONS.versioned(),
         status_code=204,
         summary="OPTIONS for a single Service",
+        response_headers=build_options_headers(supports_patch=True),
+        responses=OPTIONS_RESPONSES,
     )
-    async def options_service_item(self) -> Response:
+    async def options_service_item(self, service_id: PositiveId) -> Response:
         return build_options_response(
-            ["GET", "HEAD", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            [
+                HttpMethod.GET,
+                HttpMethod.HEAD,
+                HttpMethod.PUT,
+                HttpMethod.PATCH,
+                HttpMethod.DELETE,
+                HttpMethod.OPTIONS,
+            ],
             supports_merge_patch=True,
         )
