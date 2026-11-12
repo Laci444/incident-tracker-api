@@ -1,4 +1,5 @@
 import json
+from collections.abc import Sequence
 from http import HTTPStatus
 from typing import Any
 
@@ -11,32 +12,149 @@ from litestar.exceptions import (
     ValidationException,
 )
 
+from app.core.enums import HttpHeader, HttpMethod, MediaType, ProblemTypeUri
+
+AUTH_REALM_HEADER_VALUE = 'Basic realm="IncidentReleaseAPI", charset="UTF-8"'
+
 
 class ProblemException(Exception):
-    """RFC 9457 Problem Details exception."""
+    """Base exception for RFC 9457 Problem Details responses."""
+
+    status_code: int = 500
+    title: str = "Internal Server Error"
+    type_uri: str = ProblemTypeUri.INTERNAL_ERROR
 
     def __init__(
         self,
-        status_code: int,
-        title: str,
         detail: str,
-        type_slug: str = "about:blank",
+        *,
+        status_code: int | None = None,
+        title: str | None = None,
+        type_uri: str | None = None,
         headers: dict[str, str] | None = None,
         extensions: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(detail)
-        self.status_code = status_code
-        self.title = title
+        if status_code is not None:
+            self.status_code = status_code
+        if title is not None:
+            self.title = title
+        if type_uri is not None:
+            self.type_uri = type_uri
         self.detail = detail
-        self.type_slug = type_slug
-        self.headers = headers or {}
-        self.extensions = extensions or {}
+        self.headers: dict[str, str] = dict(headers or {})
+        self.extensions: dict[str, Any] = dict(extensions or {})
 
 
-def _wants_xml_problem(request: Request) -> bool:
-    accept = request.headers.get("accept", "").lower()
-    return "application/problem+xml" in accept or (
-        "application/xml" in accept and "json" not in accept
+class BadRequestError(ProblemException):
+    status_code = 400
+    title = "Bad Request"
+    type_uri = ProblemTypeUri.BAD_REQUEST
+
+
+class UnauthorizedError(ProblemException):
+    status_code = 401
+    title = "Unauthorized"
+    type_uri = ProblemTypeUri.UNAUTHORIZED
+
+    def __init__(
+        self,
+        detail: str = "Valid HTTP Basic Authentication credentials are required.",
+    ) -> None:
+        super().__init__(
+            detail,
+            headers={HttpHeader.WWW_AUTHENTICATE: AUTH_REALM_HEADER_VALUE},
+        )
+
+
+class ForbiddenError(ProblemException):
+    status_code = 403
+    title = "Forbidden"
+    type_uri = ProblemTypeUri.FORBIDDEN
+
+
+class ResourceNotFoundError(ProblemException):
+    status_code = 404
+    title = "Resource Not Found"
+    type_uri = ProblemTypeUri.NOT_FOUND
+
+    def __init__(self, resource_name: str, identifier: Any) -> None:
+        super().__init__(
+            f"{resource_name.capitalize()} resource with id='{identifier}' does not exist."
+        )
+
+
+class MethodNotAllowedError(ProblemException):
+    status_code = 405
+    title = "Method Not Allowed"
+    type_uri = ProblemTypeUri.METHOD_NOT_ALLOWED
+
+    def __init__(self, method: str, path: str, allowed_methods: Sequence[str]) -> None:
+        allow_header = ", ".join(allowed_methods)
+        super().__init__(
+            f"HTTP method {method} is not allowed for '{path}'. Allowed: {allow_header}.",
+            headers={HttpHeader.ALLOW: allow_header},
+        )
+
+
+class NotAcceptableError(ProblemException):
+    status_code = 406
+    title = "Not Acceptable"
+    type_uri = ProblemTypeUri.NOT_ACCEPTABLE
+
+    def __init__(self, accept_header: str, supported_types: Sequence[str]) -> None:
+        supported_list = ", ".join(supported_types)
+        super().__init__(
+            f"Requested media type '{accept_header}' is not supported. Supported: {supported_list}."
+        )
+
+
+class ResourceConflictError(ProblemException):
+    status_code = 409
+    title = "Conflict"
+    type_uri = ProblemTypeUri.CONFLICT
+
+
+class PreconditionFailedError(ProblemException):
+    status_code = 412
+    title = "Precondition Failed"
+    type_uri = ProblemTypeUri.PRECONDITION_FAILED
+
+    def __init__(self, current_etag: str, provided_if_match: str) -> None:
+        super().__init__(
+            f"Resource ETag {current_etag} does not match If-Match precondition ({provided_if_match}).",
+            headers={HttpHeader.ETAG: current_etag},
+        )
+
+
+class UnsupportedMediaTypeError(ProblemException):
+    status_code = 415
+    title = "Unsupported Media Type"
+    type_uri = ProblemTypeUri.UNSUPPORTED_MEDIA_TYPE
+
+    def __init__(self, detail: str, *, advertise_merge_patch: bool = False) -> None:
+        headers = (
+            {HttpHeader.ACCEPT_PATCH: MediaType.MERGE_PATCH_JSON}
+            if advertise_merge_patch
+            else None
+        )
+        super().__init__(detail, headers=headers)
+
+
+class ValidationFailedError(ProblemException):
+    status_code = 422
+    title = "Unprocessable Content"
+    type_uri = ProblemTypeUri.VALIDATION_ERROR
+
+    def __init__(self, detail: str, *, errors: Any = None) -> None:
+        extensions = {"errors": errors} if errors is not None else None
+        super().__init__(detail, extensions=extensions)
+
+
+def _prefers_xml_problem(request: Request) -> bool:
+    accept = request.headers.get(HttpHeader.ACCEPT.lower(), "").lower()
+    return MediaType.PROBLEM_XML in accept or (
+        MediaType.XML in accept and "json" not in accept
     )
 
 
@@ -44,34 +162,30 @@ def problem_exception_handler(request: Request, exc: Exception) -> Response:
     status_code = 500
     title = "Internal Server Error"
     detail = "An unexpected error occurred while processing the request."
-    type_uri = "https://iana.org/assignments/http-problem-types#internal-server-error"
-    headers: dict[str, str] = {"Cache-Control": "no-store"}
+    type_uri: str = ProblemTypeUri.INTERNAL_ERROR
+    headers: dict[str, str] = {HttpHeader.CACHE_CONTROL: "no-store"}
     extensions: dict[str, Any] = {}
 
     if isinstance(exc, ProblemException):
         status_code = exc.status_code
         title = exc.title
         detail = exc.detail
-        type_uri = (
-            exc.type_slug
-            if exc.type_slug.startswith("http") or exc.type_slug == "about:blank"
-            else f"urn:problem-type:{exc.type_slug}"
-        )
+        type_uri = exc.type_uri
         headers.update(exc.headers)
         extensions.update(exc.extensions)
 
     elif isinstance(exc, ValidationException):
         status_code = 422
         title = "Unprocessable Content"
-        detail = "Request payload or parameters failed schema validation."
-        type_uri = "urn:problem-type:validation-error"
+        detail = "Request payload or query parameters failed schema validation."
+        type_uri = ProblemTypeUri.VALIDATION_ERROR
         extensions["errors"] = exc.extra or exc.detail
 
     elif isinstance(exc, MethodNotAllowedException):
         status_code = 405
         title = "Method Not Allowed"
-        detail = f"HTTP method {request.method} is not allowed for {request.url.path}."
-        type_uri = "urn:problem-type:method-not-allowed"
+        detail = f"HTTP method {request.method} is not allowed for '{request.url.path}'."
+        type_uri = ProblemTypeUri.METHOD_NOT_ALLOWED
         if exc.headers:
             headers.update(exc.headers)
 
@@ -79,7 +193,7 @@ def problem_exception_handler(request: Request, exc: Exception) -> Response:
         status_code = 404
         title = "Resource Not Found"
         detail = f"No resource found at URI '{request.url.path}'."
-        type_uri = "urn:problem-type:not-found"
+        type_uri = ProblemTypeUri.NOT_FOUND
 
     elif isinstance(exc, HTTPException):
         status_code = exc.status_code
@@ -92,13 +206,10 @@ def problem_exception_handler(request: Request, exc: Exception) -> Response:
         if exc.headers:
             headers.update(exc.headers)
 
-    # RFC 9110 requires WWW-Authenticate on every 401 Unauthorized response
-    if status_code == 401 and "WWW-Authenticate" not in headers:
-        headers["WWW-Authenticate"] = (
-            'Basic realm="IncidentReleaseAPI", charset="UTF-8"'
-        )
+    if status_code == 401 and HttpHeader.WWW_AUTHENTICATE not in headers:
+        headers[HttpHeader.WWW_AUTHENTICATE] = AUTH_REALM_HEADER_VALUE
 
-    problem_body: dict[str, Any] = {
+    problem_payload: dict[str, Any] = {
         "type": type_uri,
         "title": title,
         "status": status_code,
@@ -107,17 +218,15 @@ def problem_exception_handler(request: Request, exc: Exception) -> Response:
         **extensions,
     }
 
-    if _wants_xml_problem(request):
-        xml_bytes = dicttoxml(problem_body, custom_root="problem", attr_type=False)
-        media_type = "application/problem+xml"
-        content = xml_bytes
+    if _prefers_xml_problem(request):
+        content = dicttoxml(problem_payload, custom_root="problem", attr_type=False)
+        media_type = MediaType.PROBLEM_XML
     else:
-        json_bytes = json.dumps(problem_body).encode("utf-8")
-        media_type = "application/problem+json"
-        content = json_bytes
+        content = json.dumps(problem_payload).encode("utf-8")
+        media_type = MediaType.PROBLEM_JSON
 
-    if request.method == "HEAD":
-        headers["Content-Length"] = str(len(content))
+    if request.method == HttpMethod.HEAD:
+        headers[HttpHeader.CONTENT_LENGTH] = str(len(content))
         content = b""
 
     return Response(
