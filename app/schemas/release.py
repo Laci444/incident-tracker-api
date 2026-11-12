@@ -1,74 +1,53 @@
-from typing import Any
-
 import msgspec
 
-from app.core.exceptions import ProblemException
-from app.core.hypermedia import hal_link
-from app.db.models import ReleaseModel
-from app.schemas.common import ALLOWED_ENVIRONMENTS
-from app.security.auth import AuthenticatedUser
+from app.core.enums import ReleaseEnvironment
+from app.schemas.common import (
+    CommitShaStr,
+    HALLinksMap,
+    MergePatchBase,
+    VersionStr,
+)
 
 
 class ReleaseCreate(msgspec.Struct, kw_only=True):
-    version: str
-    commit_sha: str
-    environment: str = "production"
+    version: VersionStr
+    commit_sha: CommitShaStr
+    environment: ReleaseEnvironment = ReleaseEnvironment.PRODUCTION
     release_notes: str | None = None
 
 
-class ReleasePatch(msgspec.Struct, kw_only=True):
-    version: str | None | msgspec.UnsetType = msgspec.UNSET
-    commit_sha: str | None | msgspec.UnsetType = msgspec.UNSET
-    environment: str | None | msgspec.UnsetType = msgspec.UNSET
+class ReleasePatch(MergePatchBase, kw_only=True):
+    __nullable_fields__ = frozenset({"release_notes"})
+
+    version: VersionStr | None | msgspec.UnsetType = msgspec.UNSET
+    commit_sha: CommitShaStr | None | msgspec.UnsetType = msgspec.UNSET
+    environment: ReleaseEnvironment | None | msgspec.UnsetType = msgspec.UNSET
     release_notes: str | None | msgspec.UnsetType = msgspec.UNSET
 
 
-def validate_release_environment(environment: str) -> None:
-    if environment not in ALLOWED_ENVIRONMENTS:
-        raise ProblemException(
-            status_code=422,
-            title="Unprocessable Content",
-            detail=f"Invalid environment '{environment}'. Allowed values: {sorted(ALLOWED_ENVIRONMENTS)}.",
-            type_slug="invalid-release-environment",
-        )
+class ReleaseResponseDTO(msgspec.Struct, kw_only=True):
+    id: int
+    service_id: int
+    version: str
+    commit_sha: str
+    environment: ReleaseEnvironment
+    release_notes: str | None
+    deployed_by: str
+    created_at: str
+    updated_at: str
+    _links: HALLinksMap
 
 
-def serialize_release_hal(
-    release: ReleaseModel,
-    user: AuthenticatedUser | None = None,
-) -> dict[str, Any]:
-    self_uri = f"/api/releases/{release.id}"
-    service_uri = f"/api/services/{release.service_id}"
+class EmbeddedReleasesDTO(msgspec.Struct, kw_only=True):
+    releases: list[ReleaseResponseDTO]
 
-    links: dict[str, Any] = {
-        "self": hal_link(self_uri, title=f"Release {release.version}"),
-        "collection": hal_link(
-            f"{service_uri}/releases", title="Service Releases Collection"
-        ),
-        "up": hal_link(service_uri, title="Parent Service"),
-        "related": hal_link(
-            f"/api/incidents?service_id={release.service_id}", title="Service Incidents"
-        ),
-        "describedby": hal_link("/schema/openapi.json", title="OpenAPI Specification"),
-    }
 
-    can_modify = user is not None and (
-        user.role == "admin"
-        or (user.role == "developer" and user.username == release.deployed_by)
-    )
-    if can_modify:
-        links["edit"] = hal_link(self_uri, title="Patch Release", method="PATCH")
-        links["delete"] = hal_link(self_uri, title="Delete Release", method="DELETE")
-
-    return {
-        "id": release.id,
-        "service_id": release.service_id,
-        "version": release.version,
-        "commit_sha": release.commit_sha,
-        "environment": release.environment,
-        "release_notes": release.release_notes,
-        "deployed_by": release.deployed_by,
-        "created_at": release.created_at.isoformat(),
-        "updated_at": release.updated_at.isoformat(),
-        "_links": links,
-    }
+class ReleaseCollectionResponseDTO(msgspec.Struct, kw_only=True):
+    service_id: int
+    service_name: str
+    total: int
+    count: int
+    limit: int
+    offset: int
+    _links: HALLinksMap
+    _embedded: EmbeddedReleasesDTO
