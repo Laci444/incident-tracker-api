@@ -6,7 +6,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/api/incidents"
+  url: "{{baseUrl}}/api/v1/incidents"
   headers:
     - name: Accept
       value: application/hal+json
@@ -41,7 +41,7 @@ runtime:
       value: 201
     - expression: res.headers['location']
       operator: contains
-      value: /api/incidents/
+      value: /api/v1/incidents/
     - expression: res.headers['etag']
       operator: isDefined
     - expression: res.body.reported_by
@@ -54,12 +54,12 @@ runtime:
       operator: isDefined
     - expression: res.body._links.up.href
       operator: eq
-      value: /api/services/1
+      value: /api/v1/services/1
     - expression: res.body._links.related.href
       operator: eq
-      value: /api/releases/1
+      value: /api/v1/releases/1
     - expression: res.body._links.author.href
       operator: eq
-      value: /api/me
+      value: /api/v1/me
     - expression: res.body._links.edit.href
       operator: isDefined

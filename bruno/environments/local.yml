@@ -3,9 +3,9 @@ variables:
   - name: baseUrl
     value: http://localhost:8000
   - name: serviceEtag
-    value: '"dbee5c09b928047a"'
+    value: '"c547621b2e70669b"'
   - name: serviceLastModified
-    value: Wed, 11 Nov 2026 21:55:14 GMT
+    value: Thu, 12 Nov 2026 15:02:40 GMT
   - name: createdIncidentId
     value:
       type: number

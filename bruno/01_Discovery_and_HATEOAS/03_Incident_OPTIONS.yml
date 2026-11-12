@@ -6,7 +6,7 @@ info:
 
 http:
   method: OPTIONS
-  url: "{{baseUrl}}/api/incidents/1"
+  url: "{{baseUrl}}/api/v1/incidents/1"
 
 runtime:
   assertions:

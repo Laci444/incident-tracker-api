@@ -6,7 +6,7 @@ info:
 
 http:
   method: PUT
-  url: "{{baseUrl}}/api/incidents/{{createdIncidentId}}"
+  url: "{{baseUrl}}/api/v1/incidents/{{createdIncidentId}}"
   headers:
     - name: Accept
       value: application/hal+json

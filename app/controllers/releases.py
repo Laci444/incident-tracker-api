@@ -1,272 +1,170 @@
-from typing import Any
+from typing import Any, cast
 
-import msgspec
 from litestar import Controller, Request, Response, delete, post, route
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from litestar.di import Provide
 
-from app.controllers.services import _get_service_or_404
-from app.core.caching import (
-    build_cache_headers,
-    compute_payload_etag,
-    evaluate_conditional_get,
-    verify_if_match,
+from app.core.enums import ApiPath, HttpMethod, ReleaseEnvironment, RouteName
+from app.core.hypermedia import build_options_response
+from app.core.openapi import (
+    CREATE_RESPONSES,
+    DELETE_RESPONSES,
+    OPTIONS_RESPONSES,
+    PUBLIC_ITEM_RESPONSES,
+    UPDATE_RESPONSES,
+    build_mutation_headers,
+    build_options_headers,
+    build_read_headers,
+    merge_patch_openapi_extra,
 )
-from app.core.exceptions import ProblemException
-from app.core.hypermedia import (
-    build_options_response,
-    format_rfc8288_link_header,
-    hal_link,
-)
-from app.core.renderers import render_resource_response
-from app.db.models import ReleaseModel, utc_now
-from app.schemas.common import merge_patch_openapi_body, parse_merge_patch_body
+from app.schemas.common import PageLimit, PageOffset, PositiveId, decode_merge_patch
 from app.schemas.release import (
+    ReleaseCollectionResponseDTO,
     ReleaseCreate,
     ReleasePatch,
-    serialize_release_hal,
-    validate_release_environment,
+    ReleaseResponseDTO,
 )
-from app.security.auth import AuthenticatedUser
-from app.security.guards import ensure_owner_or_admin, require_writer
+from app.security.guards import require_writer
+from app.services.releases import ReleaseService
 
 
-async def _get_release_or_404(
-    db_session: AsyncSession, release_id: int
-) -> ReleaseModel:
-    release = await db_session.get(ReleaseModel, release_id)
-    if release is None:
-        raise ProblemException(
-            status_code=404,
-            title="Resource Not Found",
-            detail=f"Release with id={release_id} does not exist.",
-            type_slug="release-not-found",
-        )
-    return release
+async def provide_release_patch_changes(request: Request) -> dict[str, Any]:
+    return decode_merge_patch(await request.body(), ReleasePatch)
 
 
 class ReleaseController(Controller):
-    path = "/api"
+    path = ""
     tags = ["3. Releases"]
 
     @route(
-        path="/services/{service_id:int}/releases",
-        http_method=["GET", "HEAD"],
+        path=ApiPath.SERVICE_RELEASES.value,
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.SERVICE_RELEASES_LIST.versioned(),
         status_code=200,
         summary="List Releases for a specific Service",
+        response_headers=build_read_headers(include_last_modified=False),
+        responses=PUBLIC_ITEM_RESPONSES,
     )
     async def list_service_releases(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        service_id: int,
-    ) -> Response:
-        service = await _get_service_or_404(db_session, service_id)
-        stmt = (
-            select(ReleaseModel)
-            .where(ReleaseModel.service_id == service_id)
-            .order_by(ReleaseModel.id.desc())
+        release_service: ReleaseService,
+        service_id: PositiveId,
+        limit: PageLimit = 10,
+        offset: PageOffset = 0,
+    ) -> ReleaseCollectionResponseDTO:
+        page = await release_service.list_service_releases(
+            service_id, limit=limit, offset=offset
         )
-        releases = list((await db_session.scalars(stmt)).all())
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        embedded = [serialize_release_hal(rel, user) for rel in releases]
-        self_uri = f"/api/services/{service_id}/releases"
-
-        links: dict[str, Any] = {
-            "self": hal_link(self_uri, title=f"Releases for {service.name}"),
-            "up": hal_link(f"/api/services/{service_id}", title=service.name),
-            "item": [
-                hal_link(
-                    f"/api/releases/{rel.id}", title=f"{service.slug} {rel.version}"
-                )
-                for rel in releases
-            ],
-            "describedby": hal_link(
-                "/schema/openapi.json", title="OpenAPI Specification"
-            ),
-        }
-        if user and user.role in ("admin", "developer"):
-            links["create-form"] = hal_link(
-                self_uri, title="Deploy New Release", method="POST"
-            )
-
-        payload = {
-            "service_id": service.id,
-            "service_name": service.name,
-            "count": len(embedded),
-            "_links": links,
-            "_embedded": {"releases": embedded},
-        }
-
-        etag = compute_payload_etag(payload)
-        cond_response = evaluate_conditional_get(request, etag=etag)
-        if cond_response is not None:
-            return cond_response
-
-        headers = build_cache_headers(etag=etag, max_age=30)
-        headers["Link"] = format_rfc8288_link_header(links)
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="releases"
-        )
+        return cast(ReleaseCollectionResponseDTO, page)
 
     @post(
-        path="/services/{service_id:int}/releases",
+        path=ApiPath.SERVICE_RELEASES.value,
+        name=RouteName.SERVICE_RELEASES_CREATE.versioned(),
         status_code=201,
         guards=[require_writer],
         summary="Create a new Release for a Service",
+        response_headers=build_mutation_headers(is_created=True),
+        responses=CREATE_RESPONSES,
     )
     async def create_service_release(
         self,
         request: Request,
-        db_session: AsyncSession,
-        service_id: int,
+        release_service: ReleaseService,
+        service_id: PositiveId,
         data: ReleaseCreate,
-    ) -> Response:
-        await _get_service_or_404(db_session, service_id)
-        validate_release_environment(data.environment)
-
-        user: AuthenticatedUser = request.user
-        release = ReleaseModel(
-            service_id=service_id,
-            version=data.version.strip(),
-            commit_sha=data.commit_sha.strip(),
-            environment=data.environment,
-            release_notes=data.release_notes,
-            deployed_by=user.username,
-        )
-        db_session.add(release)
-        await db_session.commit()
-        await db_session.refresh(release)
-
-        payload = serialize_release_hal(release, user)
-        etag = release.compute_etag()
-        headers = build_cache_headers(etag=etag, last_modified=release.updated_at)
-        headers["Location"] = f"/api/releases/{release.id}"
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=201, headers=headers, xml_root="release"
-        )
+    ) -> ReleaseResponseDTO:
+        release = await release_service.create_release(service_id, data, request.user)
+        return cast(ReleaseResponseDTO, release)
 
     @route(
-        path="/services/{service_id:int}/releases",
-        http_method=["OPTIONS"],
+        path=ApiPath.SERVICE_RELEASES.value,
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.SERVICE_RELEASES_OPTIONS.versioned(),
         status_code=204,
         summary="OPTIONS for Service Releases Collection",
+        response_headers=build_options_headers(),
+        responses=OPTIONS_RESPONSES,
     )
-    async def options_service_releases(self, service_id: int) -> Response:
-        return build_options_response(["GET", "HEAD", "POST", "OPTIONS"])
+    async def options_service_releases(self, service_id: PositiveId) -> Response:
+        return build_options_response(
+            [HttpMethod.GET, HttpMethod.HEAD, HttpMethod.POST, HttpMethod.OPTIONS]
+        )
 
     @route(
-        path="/releases/{release_id:int}",
-        http_method=["GET", "HEAD"],
+        path=ApiPath.RELEASE_ITEM.value,
+        http_method=[HttpMethod.GET, HttpMethod.HEAD],
+        name=RouteName.RELEASE_DETAIL.versioned(),
         status_code=200,
         summary="Get a single Release by ID",
+        response_headers=build_read_headers(include_last_modified=True),
+        responses=PUBLIC_ITEM_RESPONSES,
     )
     async def get_release(
         self,
-        request: Request,
-        db_session: AsyncSession,
-        release_id: int,
-    ) -> Response:
-        release = await _get_release_or_404(db_session, release_id)
-        etag = release.compute_etag()
-
-        cond_response = evaluate_conditional_get(
-            request, etag=etag, last_modified=release.updated_at
-        )
-        if cond_response is not None:
-            return cond_response
-
-        user: AuthenticatedUser | None = request.scope.get("user")
-        payload = serialize_release_hal(release, user)
-        headers = build_cache_headers(
-            etag=etag, last_modified=release.updated_at, max_age=60
-        )
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="release"
-        )
+        release_service: ReleaseService,
+        release_id: PositiveId,
+    ) -> ReleaseResponseDTO:
+        release = await release_service.get_release(release_id)
+        return cast(ReleaseResponseDTO, release)
 
     @route(
-        path="/releases/{release_id:int}",
-        http_method=["PATCH"],
+        path=ApiPath.RELEASE_ITEM.value,
+        http_method=[HttpMethod.PATCH],
+        name=RouteName.RELEASE_PATCH.versioned(),
         status_code=200,
         guards=[require_writer],
+        dependencies={"patch_changes": Provide(provide_release_patch_changes)},
         summary="Partially update a Release (RFC 7396 JSON Merge Patch)",
-        openapi_extra=merge_patch_openapi_body(
-            {"environment": "production", "release_notes": None}
+        response_headers=build_mutation_headers(),
+        responses=UPDATE_RESPONSES,
+        openapi_extra=merge_patch_openapi_extra(
+            {"environment": ReleaseEnvironment.PRODUCTION.value, "release_notes": None}
         ),
     )
     async def patch_release(
         self,
         request: Request,
-        db_session: AsyncSession,
-        release_id: int,
-    ) -> Response:
-        release = await _get_release_or_404(db_session, release_id)
-        user: AuthenticatedUser | None = request.scope.get("user")
-        ensure_owner_or_admin(user, release.deployed_by)
-        verify_if_match(request, release.compute_etag())
-
-        patch_data = await parse_merge_patch_body(request, ReleasePatch)
-
-        for field_name in ("version", "commit_sha", "environment"):
-            val = getattr(patch_data, field_name)
-            if val is not msgspec.UNSET:
-                if val is None:
-                    raise ProblemException(
-                        status_code=422,
-                        title="Unprocessable Content",
-                        detail=f"Field '{field_name}' cannot be set to null.",
-                        type_slug="non-nullable-field",
-                    )
-                if field_name == "environment":
-                    validate_release_environment(val)
-                setattr(release, field_name, val.strip())
-
-        # RFC 7396: nullable release_notes can be updated OR cleared by passing {"release_notes": null}
-        if patch_data.release_notes is not msgspec.UNSET:
-            release.release_notes = patch_data.release_notes
-
-        release.updated_at = utc_now()
-        await db_session.commit()
-        await db_session.refresh(release)
-
-        payload = serialize_release_hal(release, user)
-        etag = release.compute_etag()
-        headers = build_cache_headers(etag=etag, last_modified=release.updated_at)
-        headers["Link"] = format_rfc8288_link_header(payload["_links"])
-        return render_resource_response(
-            request, payload, status_code=200, headers=headers, xml_root="release"
+        release_service: ReleaseService,
+        release_id: PositiveId,
+        patch_changes: dict[str, Any],
+    ) -> ReleaseResponseDTO:
+        release = await release_service.patch_release(
+            release_id, patch_changes, request.scope.get("user")
         )
+        return cast(ReleaseResponseDTO, release)
 
     @delete(
-        path="/releases/{release_id:int}",
+        path=ApiPath.RELEASE_ITEM.value,
+        name=RouteName.RELEASE_DELETE.versioned(),
         status_code=204,
         guards=[require_writer],
         summary="Delete a Release (Owner or Admin)",
+        responses=DELETE_RESPONSES,
     )
     async def delete_release(
         self,
         request: Request,
-        db_session: AsyncSession,
-        release_id: int,
+        release_service: ReleaseService,
+        release_id: PositiveId,
     ) -> None:
-        release = await _get_release_or_404(db_session, release_id)
-        ensure_owner_or_admin(request.scope.get("user"), release.deployed_by)
-        verify_if_match(request, release.compute_etag())
-        await db_session.delete(release)
-        await db_session.commit()
+        await release_service.delete_release(release_id, request.scope.get("user"))
 
     @route(
-        path="/releases/{release_id:int}",
-        http_method=["OPTIONS"],
+        path=ApiPath.RELEASE_ITEM.value,
+        http_method=[HttpMethod.OPTIONS],
+        name=RouteName.RELEASE_ITEM_OPTIONS.versioned(),
         status_code=204,
         summary="OPTIONS for a single Release",
+        response_headers=build_options_headers(supports_patch=True),
+        responses=OPTIONS_RESPONSES,
     )
-    async def options_release_item(self, release_id: int) -> Response:
+    async def options_release_item(self, release_id: PositiveId) -> Response:
         return build_options_response(
-            ["GET", "HEAD", "PATCH", "DELETE", "OPTIONS"],
+            [
+                HttpMethod.GET,
+                HttpMethod.HEAD,
+                HttpMethod.PATCH,
+                HttpMethod.DELETE,
+                HttpMethod.OPTIONS,
+            ],
             supports_merge_patch=True,
         )

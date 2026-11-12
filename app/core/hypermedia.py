@@ -99,7 +99,13 @@ class HypermediaAssembler:
             try:
                 return self.request.app.route_reverse(candidate, **path_params)
             except NoRouteMatchFoundException:
-                continue
+                if path_params:
+                    try:
+                        base_url = self.request.app.route_reverse(candidate)
+                        query = "&".join(f"{k}={v}" for k, v in path_params.items())
+                        return f"{base_url}?{query}"
+                    except NoRouteMatchFoundException:
+                        continue
         return ApiPath.ROOT.value
 
     def serialize_model(self, instance: BaseResourceModel) -> dict[str, Any]:
