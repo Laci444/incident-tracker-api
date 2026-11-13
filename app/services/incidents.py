@@ -37,6 +37,7 @@ class IncidentService:
         status: IncidentStatus | None = None,
         severity: IncidentSeverity | None = None,
         service_id: int | None = None,
+        release_id: int | None = None,
         reported_by: str | None = None,
         limit: int = 10,
         offset: int = 0,
@@ -48,6 +49,8 @@ class IncidentService:
             filters.append(IncidentModel.severity == severity)
         if service_id is not None:
             filters.append(IncidentModel.service_id == service_id)
+        if release_id is not None:
+            filters.append(IncidentModel.release_id == release_id)
         if reported_by is not None:
             filters.append(IncidentModel.reported_by == reported_by)
 

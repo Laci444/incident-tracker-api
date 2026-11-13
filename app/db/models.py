@@ -141,10 +141,16 @@ class ServiceModel(BaseResourceModel):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     releases: Mapped[list["ReleaseModel"]] = relationship(
-        "ReleaseModel", back_populates="service", cascade="all, delete-orphan"
+        "ReleaseModel",
+        back_populates="service",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     incidents: Mapped[list["IncidentModel"]] = relationship(
-        "IncidentModel", back_populates="service", cascade="all, delete-orphan"
+        "IncidentModel",
+        back_populates="service",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
@@ -193,7 +199,9 @@ class ReleaseModel(BaseResourceModel):
         "ServiceModel", back_populates="releases"
     )
     incidents: Mapped[list["IncidentModel"]] = relationship(
-        "IncidentModel", back_populates="release"
+        "IncidentModel",
+        back_populates="release",
+        passive_deletes=True,
     )
 
 

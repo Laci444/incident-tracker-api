@@ -16,7 +16,7 @@ dist/
 .eggs/
 
 # Local SQLite database files (created & seeded automatically on startup)
-incident_tracker.db
+*.db
 *.db-journal
 *.db-wal
 *.db-shm
