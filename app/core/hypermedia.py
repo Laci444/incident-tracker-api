@@ -162,17 +162,7 @@ class HypermediaAssembler:
                         child_uri = f"{base_col}?{meta.id_param.value}={instance.id}"
                 else:
                     base_col = self.resolve_url(target_meta.collection_route)
-                    filter_param = (
-                        meta.parent_id_param.value
-                        if meta.parent_id_param
-                        else meta.id_param.value
-                    )
-                    filter_val = (
-                        getattr(instance, meta.parent_id_field)
-                        if meta.parent_id_field
-                        else instance.id
-                    )
-                    child_uri = f"{base_col}?{filter_param}={filter_val}"
+                    child_uri = f"{base_col}?{meta.id_param.value}={instance.id}"
 
                 links[rel_key] = hal_link(
                     child_uri,

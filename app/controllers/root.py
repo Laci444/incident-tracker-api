@@ -74,7 +74,7 @@ class DiscoveryController(Controller):
                 assembler.resolve_url(RouteName.INCIDENTS_LIST),
                 title="Global Incident Tracker",
             ),
-            ResourceName.PROFILE.value: hal_link(
+            LinkRel.ABOUT.value: hal_link(
                 assembler.resolve_url(RouteName.ME),
                 title="Authenticated User Profile",
             ),
@@ -150,7 +150,7 @@ class VersionRootController(Controller):
                 assembler.resolve_url(RouteName.INCIDENTS_LIST),
                 title="Global Incident Tracker",
             ),
-            ResourceName.PROFILE.value: hal_link(
+            LinkRel.ABOUT.value: hal_link(
                 assembler.resolve_url(RouteName.ME),
                 title="Current Authenticated User Profile",
             ),

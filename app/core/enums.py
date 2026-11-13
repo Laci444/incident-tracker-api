@@ -153,6 +153,7 @@ class LinkRel(StrEnum):
     UP = "up"
     RELATED = "related"
     AUTHOR = "author"
+    ABOUT = "about"
     FIRST = "first"
     NEXT = "next"
     PREV = "prev"

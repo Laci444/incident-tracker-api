@@ -121,17 +121,19 @@ class ProtocolNegotiationMiddleware(AbstractMiddleware):
                             advertise_merge_patch=True,
                         )
 
-            options_meta = (
-                _discover_route_options(request)
-                if method == HttpMethod.OPTIONS.value
-                else None
-            )
+            options_meta = _discover_route_options(request)
 
             async def send_with_options_headers(message: Message) -> None:
                 if (
                     message["type"] == "http.response.start"
                     and options_meta is not None
                 ):
+                    if (
+                        method != HttpMethod.OPTIONS.value
+                        and message.get("status", 200) != 405
+                    ):
+                        await send(message)
+                        return
                     allow_val, supports_patch = options_meta
                     allow_key = HttpHeader.ALLOW.lower().encode("latin-1")
                     patch_key = HttpHeader.ACCEPT_PATCH.lower().encode("latin-1")
