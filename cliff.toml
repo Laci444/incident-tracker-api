@@ -1,6 +1,9 @@
 [changelog]
 header = ""
 body = """
+{%- macro remote_url() -%}
+  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+{%- endmacro -%}
 {% if version %}\
     ## What's Changed in {{ version | trim_start_matches(pat="v") }} ({{ timestamp | date(format="%Y-%m-%d") }})
 {% else %}\
@@ -11,7 +14,7 @@ body = """
     {% for commit in commits %}
         - {% if commit.scope %}**({{ commit.scope }})** {% endif %}\
             {% if commit.breaking %}[**BREAKING**] {% endif %}\
-            {{ commit.message | upper_first }} ([`{{ commit.id | truncate(length=7, end="") }}`]({{ self::remote_url() }}/commit/{{ commit.id }}))\
+            {{ commit.message | split(pat="\n") | first | upper_first | trim }} ([`{{ commit.id | truncate(length=7, end="") }}`]({{ self::remote_url() }}/commit/{{ commit.id }}))\
     {% endfor %}
 {% endfor %}
 
