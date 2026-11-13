@@ -1,6 +1,6 @@
 [project]
 name = "incident-release-api"
-version = "1.0.0"
+version = "1.1.0"
 description = "RESTful Incident & Release Management API built with Litestar"
 readme = "README.md"
 requires-python = ">=3.11"
