@@ -1,0 +1,80 @@
+name: Release — Changelog & GitHub Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Verify, Generate Changelog & Publish Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository with full Git history and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Set up Node.js 22 (for Bruno CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies & Bruno CLI
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          npm install -g @usebruno/cli
+
+      - name: Export OpenAPI specifications & run Bruno E2E Quality Gate
+        run: |
+          litestar --app app.main:app schema openapi
+
+          rm -f data/*.db
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          SERVER_PID=$!
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/api >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          cd bruno
+          bru run --env local
+          cd ..
+
+          kill $SERVER_PID || true
+
+      - name: Generate Changelog for current tag via git-cliff
+        id: git-cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose --current
+        env:
+          OUTPUT: RELEASE_NOTES.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Create GitHub Release with Changelog & OpenAPI Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          files: |
+            openapi.json

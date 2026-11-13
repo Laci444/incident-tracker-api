@@ -1,4 +1,5 @@
 import os
+import tomllib
 from pathlib import Path
 
 from litestar.config.cors import CORSConfig
@@ -11,6 +12,17 @@ from app.core.enums import ApiPath, HttpHeader, HttpMethod
 BASE_DIR = Path(__file__).resolve().parent.parent / "data"
 DEFAULT_DB_PATH = BASE_DIR / "incident_tracker.db"
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite+aiosqlite:///{DEFAULT_DB_PATH}")
+
+
+def _read_project_version() -> str:
+    pyproject_file = BASE_DIR / "pyproject.toml"
+    if pyproject_file.is_file():
+        with pyproject_file.open("rb") as f:
+            return tomllib.load(f).get("project", {}).get("version", "1.0.0")
+    return "1.0.0"
+
+
+APP_VERSION = _read_project_version()
 
 # Strict CSP for pure API endpoints
 API_CSP_HEADER = (
@@ -55,7 +67,7 @@ cors_config = CORSConfig(
 
 openapi_config = OpenAPIConfig(
     title="Cloud-Native Incident & Release Management API",
-    version="1.0.0",
+    version=APP_VERSION,
     description=(
         "A versioned, Level 3 RESTful Web API implementing HATEOAS (HAL + RFC 8288 Link headers), "
         "RFC 9457 Problem Details, RFC 7396 JSON Merge Patch, HTTP caching (ETag / Last-Modified / 304 / 412), "
